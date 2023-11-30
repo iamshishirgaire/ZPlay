@@ -26,11 +26,10 @@ app.on("error", (error) => {
   console.log(error);
 });
 
-//route import
+//routes import
 import userRoute from "./routes/user.routes.js";
 
-//route declaration
-
-app.use("/api/v1/user", userRoute);
+//routes declaration
+app.use("/api/v1/users", userRoute);
 
 export { app };
