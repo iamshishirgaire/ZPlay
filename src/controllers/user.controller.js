@@ -3,6 +3,8 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinaryFileUpload.js";
+import jwt from "jsonwebtoken";
+const { sign } = jwt;
 const registerUser = asyncHandler(async (req, res) => {
   //accept data from frontend
   const { fullName, email, userName, password } = req.body;
@@ -49,10 +51,14 @@ const registerUser = asyncHandler(async (req, res) => {
         "-password -refreshToken"
       );
       if (usr) {
+        const token = usr.generateAccessToken();
+        res.cookie("token", token);
+
         res.status(201).json(
           new ApiResponse({
             statusCode: 201,
             data: createdUser,
+            accessToken: token,
             message: "User registered successfully",
           })
         );
@@ -63,4 +69,21 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const searchedUser = await User.findOne({ email });
+  if (!searchedUser) {
+    throw new ApiError(400, "User with that email not found");
+  } else {
+    const isPasswordCorrect = await searchedUser.isPasswordCorrect(password);
+    if (!isPasswordCorrect) {
+      throw new ApiError(400, "Either email or password is incorrect");
+    } else {
+      res.json({
+        message: "User logged in successfully",
+      });
+    }
+  }
+});
+
+export { registerUser, loginUser };
