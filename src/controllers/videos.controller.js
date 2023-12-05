@@ -5,4 +5,10 @@ const getVideos = asyncHandler(async (req, res) => {
     message: "Get all videos",
   });
 });
-export { getVideos };
+const postVideo = asyncHandler(async (req, res) => {
+  res.json({
+    message: "Post all videos",
+    data: req.body,
+  });
+});
+export { getVideos, postVideo };

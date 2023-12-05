@@ -1,8 +1,9 @@
-import express, { json } from "express";
+import express, { json, urlencoded } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
 const app = express();
+
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
@@ -25,7 +26,6 @@ app.use(cookieParser());
 app.on("error", (error) => {
   console.log(error);
 });
-
 //routes import
 import userRoute from "./routes/user.routes.js";
 import videoRoute from "./routes/video.routes.js";
