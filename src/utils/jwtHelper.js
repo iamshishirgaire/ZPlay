@@ -1,16 +1,27 @@
 import jwt from "jsonwebtoken";
-const { sign } = jwt;
+import { redisClient } from "./init_redis.js";
+const { sign, verify } = jwt;
 
-export const generateRefreshToken = (userId) => {
-  return sign(
-    {
-      _id: userId,
-    },
-    process.env.REFRESH_TOKEN_SECRET,
-    {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-    }
-  );
+export const generateRefreshToken = async (userId) => {
+  try {
+    let signedToken = sign(
+      {
+        _id: userId,
+      },
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+      }
+    );
+
+    await redisClient.set(userId.toString(), signedToken.toString(), {
+      EX: 24 * 60 * 60,
+    });
+    return signedToken;
+  } catch (error) {
+    console.log(`redisError : ${error}`);
+    return null;
+  }
 };
 
 export const generateAccessToken = (userId) => {
@@ -25,10 +36,15 @@ export const generateAccessToken = (userId) => {
   );
 };
 
-export const verifyRefreshToken = (token) => {
+export const verifyRefreshToken = async (token) => {
   try {
-    let decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    return decoded._id;
+    let decoded = verify(token, process.env.REFRESH_TOKEN_SECRET);
+    const redisToken = await redisClient.get(decoded._id);
+    if (token === redisToken) {
+      return decoded._id;
+    } else {
+      return null;
+    }
   } catch (error) {
     return null;
   }
@@ -36,7 +52,7 @@ export const verifyRefreshToken = (token) => {
 
 export const verifyAccessToken = (token) => {
   try {
-    let decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    let decoded = verify(token, process.env.ACCESS_TOKEN_SECRET);
     return decoded._id;
   } catch (error) {
     if (error.name === "TokenExpiredError") {

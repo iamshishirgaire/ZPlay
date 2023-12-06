@@ -1,0 +1,14 @@
+{
+    "redisXplorer.config": {
+        "profiles": [
+            {
+                "name": "Zplay",
+                "host": "localhost",
+                "accessKey": "",
+                "filter": "*",
+                "port": "63700"
+            }
+        ],
+        "scanLimit": 200
+    }
+}

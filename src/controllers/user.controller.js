@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinaryFileUpload.js";
+import { redisClient } from "../utils/init_redis.js";
 import {
   verifyRefreshToken,
   generateAccessToken,
@@ -48,19 +49,22 @@ const registerUser = asyncHandler(async (req, res) => {
   const createdUser = await User.findById(usr._id).select("-password");
   if (usr) {
     const accToken = generateAccessToken(usr._id);
-    const refToken = generateRefreshToken(usr._id);
-
-    res.status(201).json(
-      new ApiResponse(
-        201,
-        {
-          ...createdUser._doc,
-          accToken,
-          refToken,
-        },
-        "User registered successfully"
-      )
-    );
+    const refToken = await generateRefreshToken(usr._id);
+    if (accToken === null || refToken === null) {
+      res.status(500).json(new ApiError(500, "Internal Server Error"));
+    } else {
+      res.status(201).json(
+        new ApiResponse(
+          201,
+          {
+            ...createdUser._doc,
+            accToken,
+            refToken,
+          },
+          "User registered successfully"
+        )
+      );
+    }
   } else {
     throw new ApiError(400, "User creation failed");
   }
@@ -78,31 +82,65 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!isPasswordCorrect) {
       throw new ApiError(400, "Either email or password is incorrect");
     } else {
-      res.json({
-        message: "User logged in successfully",
-        data: {
-          accessToken: generateAccessToken(searchedUser._id),
-          refreshToken: generateRefreshToken(searchedUser._id),
-        },
-      });
+      //generate access token and refresh token
+      let aToken = generateAccessToken(searchedUser._id);
+      let rToken = await generateRefreshToken(searchedUser._id);
+      if (aToken === null || rToken === null) {
+        res.status(500).json(new ApiError(500, "Internal Server Error"));
+      } else {
+        res.json({
+          message: "User logged in successfully",
+          data: {
+            accessToken: aToken,
+            refreshToken: rToken,
+          },
+        });
+      }
     }
   }
 });
 
 const generateNewRefreshToken = asyncHandler(async (req, res) => {
   const { refreshToken } = req.body;
-  const { userId } = verifyRefreshToken(refreshToken);
+  const userId = await verifyRefreshToken(refreshToken);
+  console.log(`userId: ${userId}`);
   if (userId === null) {
-    res.status(401).json(new ApiError(400, "Invalid refresh token"));
+    res.status(401).json({
+      message: new ApiError(401, "Unauthorized").message,
+    });
   } else {
     const aToken = generateAccessToken(userId);
-    const rToken = generateRefreshToken(userId);
-
-    res.json({
-      accessToken: aToken,
-      refreshToken: rToken,
-    });
+    const rToken = await generateRefreshToken(userId);
+    if (aToken === null || rToken === null) {
+      res.status(500).json(new ApiError(500, "Internal Server Error"));
+    } else {
+      res.json({
+        accessToken: aToken,
+        refreshToken: rToken,
+      });
+    }
   }
 });
 
-export { registerUser, loginUser, generateNewRefreshToken };
+const logout = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+  const userId = await verifyRefreshToken(refreshToken);
+  if (userId === null) {
+    res.status(401).json({
+      message: new ApiError(401, "Unauthorized").message,
+    });
+  } else {
+    try {
+      await redisClient.del(userId.toString());
+      res.json({
+        message: "User logged out successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Failed to logout",
+      });
+    }
+  }
+});
+
+export { registerUser, loginUser, generateNewRefreshToken, logout };

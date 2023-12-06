@@ -3,6 +3,7 @@ import {
   registerUser,
   loginUser,
   generateNewRefreshToken,
+  logout,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { limiter } from "../middlewares/rateLimiter.middleware.js";
@@ -33,4 +34,7 @@ router
 router
   .route("/refreshToken")
   .get(limiter, validateSchema(refreshTokenSchema), generateNewRefreshToken);
+
+router.route("/logout").delete(validateSchema(refreshTokenSchema), logout);
+
 export default router;

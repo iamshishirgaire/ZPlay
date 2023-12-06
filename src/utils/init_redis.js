@@ -1,7 +1,7 @@
 import { createClient } from "redis";
 
 const redisClient = createClient({
-  url: `redis://127.0.0.1:63700`,
+  url: process.env.REDIS_HOST_URL,
 });
 redisClient.on("connect", () => {
   console.log("Connected to redis database successfully.");

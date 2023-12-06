@@ -5,7 +5,6 @@ export function verifyUser(req, res, next) {
     if (!token) {
       res.status(401).json({ message: "Unauthorized" });
     }
-
     let userId = verifyAccessToken(token);
     if (userId === "TokenExpiredError") {
       res.status(401).json({ message: "Token expired" });
