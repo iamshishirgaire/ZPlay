@@ -26,10 +26,17 @@ app.use(cookieParser());
 app.on("error", (error) => {
   console.log(error);
 });
+
+app.get("/api/v1/checkStatus", (req, res) => {
+  res.status(200).json(new ApiResponse(200, {}, "Server is up and running"));
+});
 //routes import
 import userRoute from "./routes/user.routes.js";
 import videoRoute from "./routes/video.routes.js";
+import authRoute from "./routes/auth.routes.js";
+import { ApiResponse } from "./utils/apiResponse.js";
 //routes declaration
+app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/videos", videoRoute);
 export { app };

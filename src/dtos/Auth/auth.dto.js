@@ -25,4 +25,23 @@ const refreshTokenSchema = object({
   }),
 });
 
-export { registerSchema, logInSchema, refreshTokenSchema };
+const sendOtpSchema = object({
+  body: object({
+    email: string().email().required("Email is required"),
+  }),
+});
+
+const verifyOtpSchema = object({
+  body: object({
+    email: string().email().required("Email is required"),
+    otp: string().length(6, "OTP must be 6 digits").required("OTP is required"),
+  }),
+});
+
+export {
+  registerSchema,
+  logInSchema,
+  refreshTokenSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
+};

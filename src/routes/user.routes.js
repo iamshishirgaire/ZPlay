@@ -4,7 +4,7 @@ import {
   loginUser,
   generateNewRefreshToken,
   logout,
-} from "../controllers/user.controller.js";
+} from "../controllers/User/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { limiter } from "../middlewares/rateLimiter.middleware.js";
 
@@ -12,7 +12,7 @@ import {
   registerSchema,
   logInSchema,
   refreshTokenSchema,
-} from "../dtos/auth.dto.js";
+} from "../dtos/Auth/auth.dto.js";
 import { validateSchema } from "../middlewares/schemaValidator.middleware.js";
 
 const router = Router();
@@ -31,9 +31,7 @@ router
   .route("/login")
   .post(limiter, upload.fields([]), validateSchema(logInSchema), loginUser);
 
-router
-  .route("/refreshToken")
-  .get(limiter, validateSchema(refreshTokenSchema), generateNewRefreshToken);
+router.route("/refreshToken").get(limiter, generateNewRefreshToken);
 
 router.route("/logout").delete(validateSchema(refreshTokenSchema), logout);
 

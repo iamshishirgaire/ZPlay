@@ -1,3 +1,4 @@
+import { ApiError } from "../utils/apiError.js";
 const validateSchema = (schema) => async (req, res, next) => {
   try {
     //if we  use default values while defining the schema then we need to
@@ -14,7 +15,7 @@ const validateSchema = (schema) => async (req, res, next) => {
 
     return next();
   } catch (err) {
-    res.status(400).json({ errorMessage: err.errors });
+    res.status(400).json(new ApiError(400, err.errors));
   }
 };
 export { validateSchema };
