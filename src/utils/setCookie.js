@@ -11,7 +11,7 @@ export const deleteCookie = (res, name) => {
   res.cookie(name, "", {
     httpOnly: true,
     secure: true,
-    sameSite: "none",
+    sameSite: "lax",
     maxAge: 0,
   });
 };

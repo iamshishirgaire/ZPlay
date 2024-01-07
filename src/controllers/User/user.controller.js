@@ -4,14 +4,16 @@ import { ApiResponse } from "../../utils/apiResponse.js";
 import { User } from "../../models/user.model.js";
 import { uploadOnCloudinary } from "../../utils/cloudinaryFileUpload.js";
 import { redisClient } from "../../utils/init_redis.js";
-import {
-  verifyRefreshToken,
-  generateAccessToken,
-  generateRefreshToken,
-  verifyAccessToken,
-} from "../../utils/jwtHelper.js";
+import { generateCsrfToken } from "../../utils/jwtHelper.js";
 import { deleteCookie, setCookie } from "../../utils/setCookie.js";
 import { sendEmail } from "../../utils/mailer.js";
+import {
+  addSession,
+  delSession,
+  getSessions,
+} from "../../utils/sessionManager.js";
+import { getRandomUUID } from "../../utils/randomUUID.js";
+import { cleanupExpiredSessions } from "../../utils/cleanExpiredSessions.js";
 
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, userName, password } = req.body;
@@ -80,23 +82,18 @@ const loginUser = asyncHandler(async (req, res) => {
       res.status(401).json(new ApiError(401, "Please verify your email first"));
       return;
     } else {
-      //generate access token and refresh token
-      let aToken = generateAccessToken(searchedUser._id);
-      let rToken = await generateRefreshToken(searchedUser._id);
-      if (aToken === null || rToken === null) {
-        res.status(500).json(new ApiError(500, "Internal Server Error"));
-      } else {
-        setCookie(res, "refreshToken", rToken);
-        setCookie(res, "accessToken", aToken);
-        res.status(200).json(
-          new ApiResponse(200, {
-            accessToken: aToken,
-            refreshToken: rToken,
-            user: searchedUser,
-          })
-        );
-        return;
-      }
+      const sessionId = getRandomUUID();
+      const csrfToken = generateCsrfToken(searchedUser._id);
+      setCookie(res, "sessionId", sessionId);
+      await addSession(req, searchedUser._id, csrfToken, sessionId);
+      res.status(200).json(
+        new ApiResponse(200, {
+          user: searchedUser,
+          csrfToken,
+          sessionId,
+        })
+      );
+      return;
     }
   }
 });
@@ -146,75 +143,58 @@ const verifyOtp = asyncHandler(async (req, res) => {
   }
 });
 
-const generateNewRefreshToken = asyncHandler(async (req, res) => {
-  const { refreshToken } = req.cookies ?? req.body;
-  const userId = await verifyRefreshToken(refreshToken);
-  if (userId === null) {
-    res.status(401).json({
-      message: new ApiError(401, "Unauthorized").message,
-    });
-  } else {
-    const aToken = generateAccessToken(userId);
-    const rToken = await generateRefreshToken(userId);
-    if (aToken === null || rToken === null) {
-      res.status(500).json(new ApiError(500, "Internal Server Error"));
-    } else {
-      setCookie(res, "refreshToken", rToken);
-      setCookie(res, "accessToken", aToken);
-      res.json({
-        accessToken: aToken,
-        refreshToken: rToken,
-      });
-    }
-  }
-});
+// const generateNewRefreshToken = asyncHandler(async (req, res) => {
+//   const { refreshToken } = req.cookies ?? req.body;
+//   const userId = await verifyRefreshToken(refreshToken);
+//   if (userId === null) {
+//     res.status(401).json({
+//       message: new ApiError(401, "Unauthorized").message,
+//     });
+//   } else {
+//     const aToken = generateAccessToken(userId);
+//     const rToken = await generateRefreshToken(userId);
+//     if (aToken === null || rToken === null) {
+//       res.status(500).json(new ApiError(500, "Internal Server Error"));
+//     } else {
+//       setCookie(res, "refreshToken", rToken);
+//       setCookie(res, "accessToken", aToken);
+//       res.json({
+//         accessToken: aToken,
+//         refreshToken: rToken,
+//       });
+//     }
+//   }
+// });
 
 const logout = asyncHandler(async (req, res) => {
-  const { refreshToken } = req.cookies ?? req.body;
-  if (!refreshToken) {
-    res.status(401).json(new ApiError(401, "Unauthorized"));
-    return;
-  }
-  const userId = await verifyRefreshToken(refreshToken);
-  if (userId === null) {
-    res.status(401).json(new ApiError(401, "Unauthorized"));
-    return;
-  } else {
-    try {
-      await redisClient.del(userId.toString());
-      deleteCookie(res, "refreshToken");
-      deleteCookie(res, "accessToken");
+  const { userId, sessionId } = req;
+
+  try {
+    const isDeleted = await delSession(userId, sessionId);
+    if (isDeleted) {
+      deleteCookie(res, "sessionId");
       res.json(new ApiResponse(200, "User logged out successfully"));
-    } catch (error) {
-      res.status(500).json(new ApiError(500, "Failed to log out user."));
+      cleanupExpiredSessions(userId);
+      return;
     }
+  } catch (error) {
+    res.status(500).json(new ApiError(500, "Failed to log out user."));
+    return;
   }
 });
+const getAllActiveSessions = asyncHandler(async (req, res) => {
+  try {
+    const { userId } = req;
+    const sessions = await getSessions(userId);
 
-const checkLoggedIn = asyncHandler(async (req, res) => {
-  const { accessToken } = req.cookies ?? req.body;
-  if (!accessToken) {
-    res.status(401).json(new ApiError(401, "Unauthorized"));
-    return;
-  }
-  const userId = await verifyAccessToken(accessToken);
-  if (userId === null) {
-    res.status(401).json(new ApiError(401, "Unauthorized"));
-    return;
-  } else {
-    res.status(200).json(
-      new ApiResponse(200, {
-        isLoggedIn: true,
-      })
-    );
-  }
+    res.status(200).json(new ApiResponse(200, sessions));
+  } catch (error) {}
 });
 export {
   registerUser,
   loginUser,
-  generateNewRefreshToken,
   logout,
   sendOtp,
   verifyOtp,
-  checkLoggedIn,
+  getAllActiveSessions,
 };

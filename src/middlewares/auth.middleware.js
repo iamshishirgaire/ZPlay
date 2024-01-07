@@ -1,30 +1,36 @@
-import { verifyAccessToken } from "../utils/jwtHelper.js";
+import { verifyAccessToken, verifyCSRFToken } from "../utils/jwtHelper.js";
 import { ApiError } from "../utils/apiError.js";
-export function verifyUser(req, res, next) {
+import { getSessions, getSingleSession } from "../utils/sessionManager.js";
+
+export const verifySession = async (req, res, next) => {
   try {
-    let token =
-      req.headers?.authorization?.split(" ")[1] ?? req.cookies?.accessToken;
-    if (!token) {
+    const { sessionId } = req.cookies ?? req.body;
+    const { csrfToken } = req.body;
+    if (!sessionId || !csrfToken) {
       res.status(401).json(new ApiError(401, "Unauthorized"));
       return;
     }
-    let userId = verifyAccessToken(token);
-    if (userId === "TokenExpiredError") {
-      res.status(403).json(new ApiError(403, "Token expired"));
-      return;
-    } else if (userId === "Unauthorized") {
+    const userId = await verifyCSRFToken(csrfToken);
+    if (userId === null) {
       res.status(401).json(new ApiError(401, "Unauthorized"));
       return;
-    } else {
-      next();
     }
+    const session = await getSingleSession(userId, sessionId);
+    if (!session) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    } else if (session.csrfToken !== csrfToken) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    }
+    console.log(`session: ${JSON.stringify(session)}`);
+
+    req.userId = userId;
+    req.sessionId = sessionId;
+    req.csrfToken = csrfToken;
+    next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      res.status(401).json(new ApiError(403, "Token expired"));
-      return;
-    } else {
-      res.status(401).json(new ApiError(401, "Unauthorized"));
-      return;
-    }
+    res.status(401).json(new ApiError(401, "Unauthorized"));
+    return;
   }
-}
+};

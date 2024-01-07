@@ -1,6 +1,5 @@
 import { Router } from "express";
-
-import { verifyUser } from "../middlewares/auth.middleware.js";
+import { verifySession } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
   getVideos,
@@ -10,5 +9,5 @@ import {
 const router = Router();
 
 router.route("/postVideo").post(upload.fields([]), postVideo);
-router.route("/getAllVideos").get(verifyUser, getVideos);
+router.route("/getAllVideos").get(verifySession, getVideos);
 export default router;

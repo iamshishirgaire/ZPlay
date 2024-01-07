@@ -62,3 +62,25 @@ export const verifyAccessToken = (token) => {
     }
   }
 };
+
+export const generateCsrfToken = (userId) => {
+  try {
+    return jwt.sign(
+      {
+        _id: userId,
+      },
+      process.env.ACCESS_TOKEN_SECRET
+    );
+  } catch (error) {
+    return null;
+  }
+};
+
+export const verifyCSRFToken = (token) => {
+  try {
+    let decoded = verify(token, process.env.ACCESS_TOKEN_SECRET);
+    return decoded._id;
+  } catch (error) {
+    return null;
+  }
+};

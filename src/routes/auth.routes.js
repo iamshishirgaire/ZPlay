@@ -2,11 +2,9 @@ import { Router } from "express";
 import {
   registerUser,
   loginUser,
-  generateNewRefreshToken,
   logout,
   verifyOtp,
   sendOtp,
-  checkLoggedIn,
 } from "../controllers/User/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { limiter } from "../middlewares/rateLimiter.middleware.js";
@@ -17,6 +15,7 @@ import {
   sendOtpSchema,
 } from "../dtos/Auth/auth.dto.js";
 import { validateSchema } from "../middlewares/schemaValidator.middleware.js";
+import { verifySession } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -34,20 +33,12 @@ router
   .route("/login")
   .post(limiter(5), upload.fields([]), validateSchema(logInSchema), loginUser);
 
-router.route("/refreshToken").get(
-  limiter(15),
-
-  generateNewRefreshToken
-);
-
-router.route("/logout").post(logout);
+router.route("/logout").post(verifySession, logout);
 router
   .route("/verifyOtp")
   .post(validateSchema(verifyOtpSchema), limiter(10), verifyOtp);
 router
   .route("/sendOtp")
   .post(validateSchema(sendOtpSchema), limiter(10), sendOtp);
-
-router.route("/checkLoggedIn").post(checkLoggedIn);
 
 export default router;
