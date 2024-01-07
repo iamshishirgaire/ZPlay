@@ -1,14 +1,36 @@
-import jwt from "jsonwebtoken";
-const { verify } = jwt;
+import { verifyAccessToken, verifyCSRFToken } from "../utils/jwtHelper.js";
+import { ApiError } from "../utils/apiError.js";
+import { getSessions, getSingleSession } from "../utils/sessionManager.js";
 
-export function verifyUser(req, res, next) {
-  let token = req.headers?.authorization?.split(" ")[1];
+export const verifySession = async (req, res, next) => {
   try {
-    let decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    if (decoded) {
-      next();
+    const { sessionId } = req.cookies ?? req.body;
+    const { csrfToken } = req.body;
+    if (!sessionId || !csrfToken) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
     }
+    const userId = await verifyCSRFToken(csrfToken);
+    if (userId === null) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    }
+    const session = await getSingleSession(userId, sessionId);
+    if (!session) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    } else if (session.csrfToken !== csrfToken) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    }
+    console.log(`session: ${JSON.stringify(session)}`);
+
+    req.userId = userId;
+    req.sessionId = sessionId;
+    req.csrfToken = csrfToken;
+    next();
   } catch (error) {
-    res.json({ message: "Invalid token" });
+    res.status(401).json(new ApiError(401, "Unauthorized"));
+    return;
   }
-}
+};
