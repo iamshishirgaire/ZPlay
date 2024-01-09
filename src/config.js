@@ -1,5 +1,6 @@
 const getConfig = () => {
   const env = process.env.NODE_ENV || "development";
+  console.log(`Environment: ${env}`);
 
   return {
     port: process.env.PORT || 3000,
