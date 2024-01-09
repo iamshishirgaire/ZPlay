@@ -1,12 +1,13 @@
-import { DB_NAME } from "../constants.js";
+import config from "../config.js";
 import mongoose from "mongoose";
 
+const { db } = config;
 const connectMongoDb = async () => {
   try {
-    await mongoose.connect(`${process.env.MONGODB_URI}${DB_NAME}`);
+    await mongoose.connect(`${db.uri}`);
     console.log("Connected to mongodb database successfully.");
   } catch (error) {
-    console.log(` Error while connecting to mongodb database:${error}`);
+    console.error(` Error while connecting to mongodb database:${error}`);
     process.exit(1);
   }
 };

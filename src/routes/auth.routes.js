@@ -5,6 +5,7 @@ import {
   logout,
   verifyOtp,
   sendOtp,
+  getNewCsrfToken,
 } from "../controllers/User/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { limiter } from "../middlewares/rateLimiter.middleware.js";
@@ -18,7 +19,6 @@ import { validateSchema } from "../middlewares/schemaValidator.middleware.js";
 import { verifySession } from "../middlewares/auth.middleware.js";
 
 const router = Router();
-
 router.route("/register").post(
   limiter(5),
   upload.fields([
@@ -41,4 +41,5 @@ router
   .route("/sendOtp")
   .post(validateSchema(sendOtpSchema), limiter(10), sendOtp);
 
+router.route("/getCsrfToken").get(limiter(20), getNewCsrfToken);
 export default router;
