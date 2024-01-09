@@ -1,36 +1,25 @@
 import { createTransport } from "nodemailer";
-import { google } from "googleapis";
 import { redisClient } from "./init_redis.js";
+import config from "../config.js";
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
-const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
-const GOOGLE_SENDER_EMAIL = process.env.GOOGLE_SENDER_EMAIL;
+const GOOGLE_SENDER_EMAIL = config.google.senderEmail;
+const GOOGLE_CLIENT_ID = config.google.clientId;
+const GOOGLE_CLIENT_SECRET = config.google.clientSecret;
+const GOOGLE_REFRESH_TOKEN = config.google.refreshToken;
+const GOOGLE_ACCESS_TOKEN = config.google.accessToken;
 
-const oAuth2Client = new google.auth.OAuth2(
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  REDIRECT_URI
-);
-oAuth2Client.setCredentials({
-  refresh_token: GMAIL_REFRESH_TOKEN,
-});
 const sendEmail = async ({ email }) => {
   try {
-    const accessToken = await oAuth2Client.getAccessToken();
     const transport = createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
       auth: {
         type: "OAuth2",
         user: GOOGLE_SENDER_EMAIL,
         clientId: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        refreshToken: GMAIL_REFRESH_TOKEN,
-        accessToken,
-      },
-      tls: {
-        rejectUnauthorized: false,
+        refreshToken: GOOGLE_REFRESH_TOKEN,
+        accessToken: GOOGLE_ACCESS_TOKEN,
+        expires: 3600,
       },
     });
     //generate random 6 digits otp
@@ -46,7 +35,6 @@ const sendEmail = async ({ email }) => {
         otp +
         "</h1></body></html>",
     };
-
     transport.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log(error);

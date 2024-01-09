@@ -4,13 +4,15 @@ import { ApiResponse } from "../../utils/apiResponse.js";
 import { User } from "../../models/user.model.js";
 import { uploadOnCloudinary } from "../../utils/cloudinaryFileUpload.js";
 import { redisClient } from "../../utils/init_redis.js";
-import { generateCsrfToken } from "../../utils/jwtHelper.js";
+import { generateSessionId, verifySessionId } from "../../utils/jwtHelper.js";
 import { deleteCookie, setCookie } from "../../utils/setCookie.js";
 import { sendEmail } from "../../utils/mailer.js";
 import {
   addSession,
   delSession,
   getSessions,
+  getSingleSession,
+  updateSession,
 } from "../../utils/sessionManager.js";
 import { getRandomUUID } from "../../utils/randomUUID.js";
 import { cleanupExpiredSessions } from "../../utils/cleanExpiredSessions.js";
@@ -82,14 +84,16 @@ const loginUser = asyncHandler(async (req, res) => {
       res.status(401).json(new ApiError(401, "Please verify your email first"));
       return;
     } else {
-      const sessionId = getRandomUUID();
-      const csrfToken = generateCsrfToken(searchedUser._id);
+      const sessionId = generateSessionId(searchedUser._id);
       setCookie(res, "sessionId", sessionId);
-      await addSession(req, searchedUser._id, csrfToken, sessionId);
+      await addSession(req, searchedUser._id, sessionId);
+      const { password, __v, createdAt, updatedAt, ...others } =
+        searchedUser._doc;
       res.status(200).json(
         new ApiResponse(200, {
-          user: searchedUser,
-          csrfToken,
+          user: {
+            ...others,
+          },
           sessionId,
         })
       );
@@ -143,29 +147,6 @@ const verifyOtp = asyncHandler(async (req, res) => {
   }
 });
 
-// const generateNewRefreshToken = asyncHandler(async (req, res) => {
-//   const { refreshToken } = req.cookies ?? req.body;
-//   const userId = await verifyRefreshToken(refreshToken);
-//   if (userId === null) {
-//     res.status(401).json({
-//       message: new ApiError(401, "Unauthorized").message,
-//     });
-//   } else {
-//     const aToken = generateAccessToken(userId);
-//     const rToken = await generateRefreshToken(userId);
-//     if (aToken === null || rToken === null) {
-//       res.status(500).json(new ApiError(500, "Internal Server Error"));
-//     } else {
-//       setCookie(res, "refreshToken", rToken);
-//       setCookie(res, "accessToken", aToken);
-//       res.json({
-//         accessToken: aToken,
-//         refreshToken: rToken,
-//       });
-//     }
-//   }
-// });
-
 const logout = asyncHandler(async (req, res) => {
   const { userId, sessionId } = req;
 
@@ -187,9 +168,61 @@ const getAllActiveSessions = asyncHandler(async (req, res) => {
     const { userId } = req;
     const sessions = await getSessions(userId);
 
-    res.status(200).json(new ApiResponse(200, sessions));
-  } catch (error) {}
+    res.status(200).json(new ApiResponse(200, { sessions }));
+  } catch (error) {
+    res.status(500).json(new ApiError(500, "Failed to get sessions."));
+  }
 });
+
+const getNewCsrfToken = asyncHandler(async (req, res) => {
+  try {
+    const { sessionId } = req.cookies;
+    if (!sessionId) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    }
+    const userId = await verifySessionId(sessionId);
+    if (!userId) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    }
+
+    const userSession = await getSingleSession(userId, sessionId);
+    if (userSession.sessionId !== sessionId) {
+      res.status(401).json(new ApiError(401, "Unauthorized"));
+      return;
+    }
+    const csrfToken = getRandomUUID();
+    await updateSession(req, userId, sessionId, csrfToken);
+    await res.status(200).json(new ApiResponse(200, { csrfToken }));
+  } catch (error) {
+    res.status(500).json(new ApiError(500, "Failed to get new csrf token."));
+  }
+});
+
+const amIloggedIn = asyncHandler(async (req, res) => {
+  const { sessionId } = req.cookies;
+  if (!sessionId) {
+    res.status(401).json(new ApiError(401, "Unauthorized"));
+    return;
+  }
+  const userId = await verifySessionId(sessionId);
+  if (!userId) {
+    res.status(401).json(new ApiError(401, "Unauthorized"));
+    return;
+  }
+  const userSession = await getSingleSession(userId, sessionId);
+  if (userSession === null) {
+    res.status(401).json(new ApiError(401, "Unauthorized"));
+    return;
+  }
+  if (userSession.sessionId !== sessionId) {
+    res.status(401).json(new ApiError(401, "Unauthorized"));
+    return;
+  }
+  res.status(200).json(new ApiResponse(200, { isLoggedIn: true }));
+});
+
 export {
   registerUser,
   loginUser,
@@ -197,4 +230,6 @@ export {
   sendOtp,
   verifyOtp,
   getAllActiveSessions,
+  getNewCsrfToken,
+  amIloggedIn,
 };

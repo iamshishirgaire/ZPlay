@@ -64,6 +64,9 @@ devDependencies:
   '@types/bcrypt':
     specifier: ^5.0.2
     version: 5.0.2
+  '@types/config':
+    specifier: ^3.3.3
+    version: 3.3.3
   '@types/jsonwebtoken':
     specifier: ^9.0.5
     version: 9.0.5
@@ -171,6 +174,10 @@ packages:
     dependencies:
       '@types/connect': 3.4.38
       '@types/node': 20.10.0
+    dev: true
+
+  /@types/config@3.3.3:
+    resolution: {integrity: sha512-BB8DBAud88EgiAKlz8WQStzI771Kb6F3j4dioRJ4GD+tP4tzcZyMlz86aXuZT4s9hyesFORehMQE6eqtA5O+Vg==}
     dev: true
 
   /@types/connect@3.4.38:

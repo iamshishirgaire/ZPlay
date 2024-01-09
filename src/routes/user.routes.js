@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { verifySession } from "../middlewares/auth.middleware.js";
-import { getAllActiveSessions } from "../controllers/User/user.controller.js";
+import {
+  amIloggedIn,
+  getAllActiveSessions,
+} from "../controllers/User/user.controller.js";
 
 const router = Router();
 
-// router.route("/refreshToken").get(limiter, generateNewRefreshToken);
-
 router.route("/getsessions").get(verifySession, getAllActiveSessions);
+router.route("/amIloggedIn").get(amIloggedIn);
 export default router;

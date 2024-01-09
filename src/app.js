@@ -1,4 +1,4 @@
-import express, { json, urlencoded } from "express";
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
@@ -8,7 +8,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: config.corsOrigin,
     credentials: true,
   })
 );
@@ -37,6 +37,7 @@ import userRoute from "./routes/user.routes.js";
 import videoRoute from "./routes/video.routes.js";
 import authRoute from "./routes/auth.routes.js";
 import { ApiResponse } from "./utils/apiResponse.js";
+import config from "./config.js";
 //routes declaration
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/users", userRoute);

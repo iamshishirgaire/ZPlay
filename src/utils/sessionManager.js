@@ -1,11 +1,10 @@
 import { redisClient } from "./init_redis.js";
 import { getReqDetails } from "./reqDetails.js";
 
-export const addSession = async (req, userId, csrfToken, sessionId) => {
+export const addSession = async (req, userId, sessionId) => {
   const deviceDetails = getReqDetails(req);
   const session = {
     sessionId,
-    csrfToken,
     deviceDetails,
   };
   const key = `sessions:${userId}`;
@@ -30,9 +29,10 @@ export const getSingleSession = async (userId, sessionId) => {
     (session) => session.sessionId === sessionId
   );
   if (sessionIndex !== -1) {
+    sessionId;
     return parsedSession[sessionIndex];
   } else {
-    throw new Error("Session not found");
+    return null;
   }
 };
 export const delSession = async (userId, sessionId) => {
@@ -49,9 +49,24 @@ export const delSession = async (userId, sessionId) => {
       );
       return true;
     } else {
-      throw new Error("Session not found");
+      return false;
     }
   } catch (error) {
-    throw new Error(error.message ?? "Failed to delete session");
+    return false;
+  }
+};
+
+export const updateSession = async (req, userId, sessionId, csrfToken) => {
+  try {
+    const parsedSession = await getSingleSession(userId, sessionId);
+    if (parsedSession.sessionId === sessionId) {
+      await delSession(userId, sessionId);
+      await addSession(req, userId, csrfToken, sessionId);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return false;
   }
 };
