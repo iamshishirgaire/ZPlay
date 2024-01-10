@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { redisClient } from "./init_redis.js";
-import config from "../config.js";
+import config from "../configuration.js";
 const { sign, verify } = jwt;
 
 export const generateSessionId = (userId) => {

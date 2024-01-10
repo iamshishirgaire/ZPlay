@@ -1,6 +1,6 @@
 import { createTransport } from "nodemailer";
 import { redisClient } from "./init_redis.js";
-import config from "../config.js";
+import config from "../configuration.js";
 
 const GOOGLE_SENDER_EMAIL = config.google.senderEmail;
 const GOOGLE_CLIENT_ID = config.google.clientId;

@@ -1,4 +1,4 @@
-import config from "../config.js";
+import config from "../configuration.js";
 import mongoose from "mongoose";
 
 const { db } = config;
