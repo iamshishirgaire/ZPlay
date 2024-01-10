@@ -6,12 +6,15 @@ import helmet from "helmet";
 const app = express();
 
 app.use(helmet());
+
 app.use(
   cors({
     origin: configuration.corsOrigin,
     credentials: true,
   })
 );
+app.set("trust proxy", true);
+
 app.use(
   express.json({
     limit: "16kb",
