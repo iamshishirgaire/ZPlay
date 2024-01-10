@@ -7,6 +7,7 @@ const getConfig = () => {
 
   return {
     port: process.env.PORT || 3000,
+    env,
     db: {
       uri:
         env === "production"
