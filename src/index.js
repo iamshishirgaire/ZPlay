@@ -11,17 +11,17 @@ const __dirname = path.resolve();
 dotenv.config();
 connectMongoDb().then(() => {
   redisClient.connect().then(() => {
-    https
-      .createServer(
-        {
-          key: readFileSync(`${__dirname}/cert/key.pem`),
-          cert: readFileSync(`${__dirname}/cert/cert.pem`),
-        },
-        app
-      )
-      .listen(configuration.port, () => {
-        cleanupExpiredSessions("6595643fda475cdcad819beb");
-        console.log(`Server listening on port ${configuration.port}`);
-      });
+    // https
+    //   .createServer(
+    //     {
+    //       key: readFileSync(`${__dirname}/cert/key.pem`),
+    //       cert: readFileSync(`${__dirname}/cert/cert.pem`),
+    //     },
+    //     app
+    //   )
+    app.listen(configuration.port, () => {
+      cleanupExpiredSessions("6595643fda475cdcad819beb");
+      console.log(`Server listening on port ${configuration.port}`);
+    });
   });
 });
