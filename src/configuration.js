@@ -4,7 +4,6 @@ dotenv.config();
 const getConfig = () => {
   const env = process.env.NODE_ENV || "development";
   console.log(`Environment: ${env}`);
-  console.log(process.env.DEV_ACCESS_TOKEN_EXPIRY);
 
   return {
     port: process.env.PORT || 3000,
@@ -26,7 +25,7 @@ const getConfig = () => {
       apiKey:
         env === "production"
           ? process.env.PROD_CLOUDINARY_API_KEY
-          : process.env.DEV_CLOUDINARY_API_KEY,
+          : process.env.DEV_CLOUDINARY_API_KEYdeclaration,
       apiSecret:
         env === "production"
           ? process.env.PROD_CLOUDINARY_API_SECRET
@@ -77,10 +76,7 @@ const getConfig = () => {
         env === "production"
           ? process.env.PROD_GOOGLE_ACCESS_TOKEN
           : process.env.DEV_GOOGLE_ACCESS_TOKEN,
-      appPassword:
-        env === "production"
-          ? process.env.PROD_APP_PASSWORD
-          : process.env.DEV_APP_PASSWORD,
+      appPassword: process.env.GOOGLE_APP_PASSWORD,
     },
   };
 };
