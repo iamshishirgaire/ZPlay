@@ -3,23 +3,15 @@ import { redisClient } from "./init_redis.js";
 import config from "../configuration.js";
 
 const GOOGLE_SENDER_EMAIL = config.google.senderEmail;
-const GOOGLE_CLIENT_ID = config.google.clientId;
-const GOOGLE_CLIENT_SECRET = config.google.clientSecret;
-const GOOGLE_REFRESH_TOKEN = config.google.refreshToken;
-const GOOGLE_ACCESS_TOKEN = config.google.accessToken;
+const GOOGLE_APP_PASSWORD = config.google.appPassword;
 
 const sendEmail = async ({ email }) => {
   try {
     const transport = createTransport({
-      host: "smtp.gmail.com",
+      service: "gmail",
       auth: {
-        type: "OAuth2",
         user: GOOGLE_SENDER_EMAIL,
-        clientId: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
-        refreshToken: GOOGLE_REFRESH_TOKEN,
-        accessToken: GOOGLE_ACCESS_TOKEN,
-        expires: 3600,
+        pass: GOOGLE_APP_PASSWORD,
       },
     });
     //generate random 6 digits otp
