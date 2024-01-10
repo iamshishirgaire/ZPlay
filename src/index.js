@@ -4,10 +4,11 @@ import { app } from "./app.js";
 import https from "https";
 import { readFileSync } from "fs";
 import path from "path";
-import config from "./config.js";
+import configuration from "./configuration.js";
+import dotenv from "dotenv";
 import { cleanupExpiredSessions } from "./utils/cleanExpiredSessions.js";
-import { config } from "dotenv";
 const __dirname = path.resolve();
+dotenv.config();
 connectMongoDb().then(() => {
   redisClient.connect().then(() => {
     https
@@ -18,9 +19,9 @@ connectMongoDb().then(() => {
         },
         app
       )
-      .listen(config.port, () => {
+      .listen(configuration.port, () => {
         cleanupExpiredSessions("6595643fda475cdcad819beb");
-        console.log(`Server listening on port ${process.env.PORT}`);
+        console.log(`Server listening on port ${configuration.port}`);
       });
   });
 });

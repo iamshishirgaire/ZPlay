@@ -1,6 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 const getConfig = () => {
   const env = process.env.NODE_ENV || "development";
   console.log(`Environment: ${env}`);
+  console.log(process.env.DEV_ACCESS_TOKEN_EXPIRY);
 
   return {
     port: process.env.PORT || 3000,
