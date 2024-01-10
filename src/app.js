@@ -13,7 +13,7 @@ app.use(
     credentials: true,
   })
 );
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 app.use(
   express.json({
@@ -31,6 +31,7 @@ app.use(cookieParser());
 app.on("error", (error) => {
   console.log(error);
 });
+app.get("/ip", (request, response) => response.send(request.ip));
 
 app.get("/api/v1/checkStatus", (req, res) => {
   res.status(200).json(new ApiResponse(200, {}, "Server is up and running"));
