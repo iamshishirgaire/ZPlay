@@ -4,6 +4,9 @@
   "description": "Backend for zplay application made with Express and Node JS",
   "type": "module",
   "main": "src/index.js",
+  "engine":{
+    "node":"20.x"
+  },
   "scripts": {
     "dev": "nodemon dotenv/config --experimental-json-modules    src/index.js",
     "start": "node  dotenv/config --experimental-json-modules    src/index.js"
