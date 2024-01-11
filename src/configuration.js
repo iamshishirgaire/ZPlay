@@ -34,8 +34,8 @@ const getConfig = () => {
     },
     sessionToken:
       env === "production"
-        ? process.env.PROD_SESSION_TOKEN
-        : process.env.DEV_SESSION_TOKEN,
+        ? process.env.PROD_SESSION_TOKEN_SECRET
+        : process.env.DEV_SESSION_TOKEN_SECRET,
 
     sessionTokenExpiry:
       env === "production"
@@ -46,10 +46,7 @@ const getConfig = () => {
         ? process.env.PROD_REDIS_HOST_URL
         : process.env.DEV_REDIS_HOST_URL,
     google: {
-      senderEmail:
-        env === "production"
-          ? process.env.PROD_GOOGLE_SENDER_EMAIL
-          : process.env.DEV_GOOGLE_SENDER_EMAIL,
+      senderEmail: process.env.GOOGLE_SENDER_EMAIL,
       appPassword: process.env.GOOGLE_APP_PASSWORD,
     },
   };
