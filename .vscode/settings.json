@@ -7,6 +7,13 @@
                 "accessKey": "",
                 "filter": "*",
                 "port": "63700"
+            },
+            {
+                "name": "zplayredis",
+                "host": "redis://default:jAyL0odgMP73mYYqxDoBWZ3rTMyZX5zL@redis-17346.c281.us-east-1-2.ec2.cloud.redislabs.com:17346",
+                "accessKey": "",
+                "filter": "*",
+                "port": "6379"
             }
         ],
         "scanLimit": 200

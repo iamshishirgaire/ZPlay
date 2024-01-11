@@ -5,6 +5,7 @@ import config from "../configuration.js";
 const GOOGLE_SENDER_EMAIL = config.google.senderEmail;
 const GOOGLE_APP_PASSWORD = config.google.appPassword;
 
+console.log(GOOGLE_SENDER_EMAIL, GOOGLE_APP_PASSWORD);
 const sendEmail = async ({ email }) => {
   try {
     const transport = createTransport({
