@@ -26,57 +26,30 @@ const getConfig = () => {
       apiKey:
         env === "production"
           ? process.env.PROD_CLOUDINARY_API_KEY
-          : process.env.DEV_CLOUDINARY_API_KEYdeclaration,
+          : process.env.DEV_CLOUDINARY_API_KEY,
       apiSecret:
         env === "production"
           ? process.env.PROD_CLOUDINARY_API_SECRET
           : process.env.DEV_CLOUDINARY_API_SECRET,
     },
-    accessTokenSecret:
+    sessionToken:
       env === "production"
-        ? process.env.PROD_ACCESS_TOKEN_SECRET
-        : process.env.DEV_ACCESS_TOKEN_SECRET,
-    accessTokenExpiry:
+        ? process.env.PROD_SESSION_TOKEN
+        : process.env.DEV_SESSION_TOKEN,
+
+    sessionTokenExpiry:
       env === "production"
-        ? process.env.PROD_ACCESS_TOKEN_EXPIRY
-        : process.env.DEV_ACCESS_TOKEN_EXPIRY,
-    refreshTokenSecret:
-      env === "production"
-        ? process.env.PROD_REFRESH_TOKEN_SECRET
-        : process.env.DEV_REFRESH_TOKEN_SECRET,
-    refreshTokenExpiry:
-      env === "production"
-        ? process.env.PROD_REFRESH_TOKEN_EXPIRY
-        : process.env.DEV_REFRESH_TOKEN_EXPIRY,
+        ? process.env.PROD_SESSION_TOKEN_EXPIRY
+        : process.env.DEV_SESSION_TOKEN_EXPIRY,
     redisHostUrl:
       env === "production"
         ? process.env.PROD_REDIS_HOST_URL
         : process.env.DEV_REDIS_HOST_URL,
     google: {
-      clientId:
-        env === "production"
-          ? process.env.PROD_GOOGLE_CLIENT_ID
-          : process.env.DEV_GOOGLE_CLIENT_ID,
-      clientSecret:
-        env === "production"
-          ? process.env.PROD_GOOGLE_CLIENT_SECRET
-          : process.env.DEV_GOOGLE_CLIENT_SECRET,
-      redirectUri:
-        env === "production"
-          ? process.env.PROD_GOOGLE_REDIRECT_URI
-          : process.env.DEV_GOOGLE_REDIRECT_URI,
       senderEmail:
         env === "production"
           ? process.env.PROD_GOOGLE_SENDER_EMAIL
           : process.env.DEV_GOOGLE_SENDER_EMAIL,
-      refreshToken:
-        env === "production"
-          ? process.env.PROD_GOOGLE_REFRESH_TOKEN
-          : process.env.DEV_GOOGLE_REFRESH_TOKEN,
-      accessToken:
-        env === "production"
-          ? process.env.PROD_GOOGLE_ACCESS_TOKEN
-          : process.env.DEV_GOOGLE_ACCESS_TOKEN,
       appPassword: process.env.GOOGLE_APP_PASSWORD,
     },
   };

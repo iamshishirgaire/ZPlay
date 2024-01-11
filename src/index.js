@@ -6,9 +6,9 @@ import { readFileSync } from "fs";
 import path from "path";
 import configuration from "./configuration.js";
 import dotenv from "dotenv";
-import { cleanupExpiredSessions } from "./utils/cleanExpiredSessions.js";
 const __dirname = path.resolve();
 dotenv.config();
+
 connectMongoDb().then(() => {
   redisClient.connect().then(() => {
     if (configuration.env === "development") {
